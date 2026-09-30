@@ -10,7 +10,6 @@ load_dotenv()
 
 tavily_client = TavilyClient(os.getenv('TAVILY_API_KEY'))
 
-
 @tool
 def search_from_url(url:str)-> str:
     """Load information of url passed in the function"""
@@ -18,6 +17,7 @@ def search_from_url(url:str)-> str:
     data = loader.load()
     
     return ''.join(data[0].page_content.split('\n\n'))
+
 
 @tool
 def search_from_tavily(topic:str)-> str:
@@ -28,8 +28,12 @@ def search_from_tavily(topic:str)-> str:
         max_results=3
     )
     # research: dict->type, dict['result']->dict type {'url', 'title', 'content', 'score', 'raw_content', 'id'}
-
-    return research
+    
+    result_from_urls = []
+    for item in research['results']:
+        result_from_urls.append(search_from_url.invoke(item['url']))
+    
+    return research, result_from_urls
 '''    
 loader = WebBaseLoader('https://english.onlinekhabar.com')
 ld = loader.load()
@@ -47,4 +51,4 @@ print(r2)
 #     print(len(search_loader), type(search_loader))
 
 
-print(search_from_url.invoke('https://english.onlinekhabar.com'))
+# _, result = search_from_tavily.invoke('about machine learning')
