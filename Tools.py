@@ -4,12 +4,16 @@ from dotenv import load_dotenv
 from langchain_core.tools import tool
 from langchain_community.document_loaders import TextLoader, PyPDFLoader, WebBaseLoader
 from tavily import TavilyClient
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_chroma import Chroma
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
 
 load_dotenv()
 
 tavily_client = TavilyClient(os.getenv('TAVILY_API_KEY'))
 pdf_content = None
+pdf_name = None
 
 @tool
 def search_from_url(url:str)-> str:
@@ -43,20 +47,62 @@ def search_from_tavily(topic:str)-> str:
 
     return "\n\n".join(results)
 
-'''    
-loader = WebBaseLoader('https://english.onlinekhabar.com')
-ld = loader.load()
-print(len(ld), type(ld), ''.join(ld[0].page_content.split('\n\n')))    
 
-r2 = search_from_tavily.invoke('latest news on nepal')
-for item in r2['results']:
-    
-    search_dict = WebBaseLoader(item['url'])
-    search_loader = search_dict.load()
-    
-    print(len(search_loader), type(search_loader))
-    
-_, result = search_from_tavily.invoke('about machine learning')
+@tool
+def similar_context_from_chromaDB(topic:str)->list:
+    f"""search and extract information for the existing database
+        that has information about the document {pdf_content}
+    """
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
+    vector_store = Chroma(
+        persist_directory="chromaDB",
+        embedding_function=embeddings
+    )
+    results = vector_store.similarity_search(
+        f"{topic}",
+        k=3
+    )
+    return results
+
+@tool
+def create_vector_db(pdf_path: str, topic:str) -> list:
+    f"""Create a ChromaDB vector database from a PDF file.
+        if the pdf is not same as previous {pdf_content}"""
+        
+    pdf_name=pdf_path
+    loader = PyPDFLoader(pdf_path)
+    documents = loader.load()
+
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
+    )
+
+    chunks = splitter.split_documents(documents)
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2"
+    )
+
+    vector_store = Chroma.from_documents(
+        documents=chunks,
+        embedding=embeddings,
+        persist_directory="./chromaDB"
+    )
+
+    return similar_context_from_chromaDB(topic)
+
+
+
+
+
+'''    
+
+result = search_from_tavily.invoke('about machine learning')
 print(type(result), len(result))
 for item in result:
     print(len(item))
