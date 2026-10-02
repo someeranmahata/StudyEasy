@@ -9,10 +9,11 @@ import os
 load_dotenv()
 
 tavily_client = TavilyClient(os.getenv('TAVILY_API_KEY'))
+pdf_content = None
 
 @tool
 def search_from_url(url:str)-> str:
-    """Load information of url passed in the function"""
+    """Load and extract information from a webpage when the url/link is given."""
     loader = WebBaseLoader(url)
     data = loader.load()
     
@@ -21,34 +22,36 @@ def search_from_url(url:str)-> str:
 
 @tool
 def search_from_tavily(topic:str)-> str:
-    """searching from tavily"""
+    """searching from tavily if any information is not present in the database."""
     research = tavily_client.search(
         query=topic,
         search_depth='basic',
         max_results=3
     )
     # research: dict->type, dict['result']->dict type {'url', 'title', 'content', 'score', 'raw_content', 'id'}
-    
+
     result_from_urls = []
     for item in research['results']:
         result_from_urls.append(search_from_url.invoke(item['url']))
     
     return research, result_from_urls
+
 '''    
 loader = WebBaseLoader('https://english.onlinekhabar.com')
 ld = loader.load()
 print(len(ld), type(ld), ''.join(ld[0].page_content.split('\n\n')))    
-print('-'*50)
+
 r2 = search_from_tavily.invoke('latest news on nepal')
-print(r2)
+for item in r2['results']:
+    
+    search_dict = WebBaseLoader(item['url'])
+    search_loader = search_dict.load()
+    
+    print(len(search_loader), type(search_loader))
+    
+_, result = search_from_tavily.invoke('about machine learning')
+print(type(result), len(result))
+for item in result:
+    print(len(item))
+
 '''
-# r2 = search_from_tavily.invoke('latest news on nepal')
-# for item in r2['results']:
-    
-#     search_dict = WebBaseLoader(item['url'])
-#     search_loader = search_dict.load()
-    
-#     print(len(search_loader), type(search_loader))
-
-
-# _, result = search_from_tavily.invoke('about machine learning')
