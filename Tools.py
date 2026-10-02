@@ -17,7 +17,9 @@ def search_from_url(url:str)-> str:
     loader = WebBaseLoader(url)
     data = loader.load()
     
-    return ''.join(data[0].page_content.split('\n\n'))
+    text = "\n".join(doc.page_content for doc in data)
+
+    return text[:10000]
 
 
 @tool
@@ -30,11 +32,16 @@ def search_from_tavily(topic:str)-> str:
     )
     # research: dict->type, dict['result']->dict type {'url', 'title', 'content', 'score', 'raw_content', 'id'}
 
-    result_from_urls = []
-    for item in research['results']:
-        result_from_urls.append(search_from_url.invoke(item['url']))
-    
-    return research, result_from_urls
+    results = []
+
+    for item in research["results"]:
+        results.append(
+            f"Title: {item['title']}\n"
+            f"URL: {item['url']}\n"
+            f"Content: {item['content']}"
+        )
+
+    return "\n\n".join(results)
 
 '''    
 loader = WebBaseLoader('https://english.onlinekhabar.com')
