@@ -1,7 +1,7 @@
 #GOING TO BUILD ALL THE AGENTS HERE USING TOOLS FROM Tools.py file
 
 from dotenv import load_dotenv
-from Tools import search_from_tavily, search_from_url
+from Tools import *
 from langchain.agents import create_agent
 from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
@@ -47,6 +47,15 @@ chat = HumanMessage(content=input('user:'))
 response = agent_for_web_scraping.invoke({
     'messages':chat
 })
-print(response)
-print("-"*100)
-print(response['messages'][-1].content)
+# print(response)
+# print("-"*100)
+# print(response['messages'][-1].content)
+
+agent_context_search = create_agent(
+    model=model,
+    tools= [similar_context_from_chromaDB, create_vector_db],
+    system_prompt='''
+        give the answer to user from chromaDB, if the pdf content
+        matches with the question asked by user.
+    '''
+)
