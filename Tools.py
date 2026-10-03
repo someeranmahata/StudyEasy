@@ -7,7 +7,6 @@ from tavily import TavilyClient
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_docling.loader import DoclingLoader
 import os
 
 load_dotenv()
@@ -100,6 +99,7 @@ def create_vector_db(pdf_path: str) -> str:
     )
 
     return "Vector database created successfully from the PDF."
+
 
 
 

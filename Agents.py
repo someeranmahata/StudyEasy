@@ -8,7 +8,7 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.output_parsers import StrOutputParser
 from rich import print
 from langchain_core.prompts import ChatPromptTemplate
-
+from prompts import get_prompt
 
 load_dotenv()
 
@@ -19,63 +19,78 @@ model = ChatGroq(
 
 response = model.invoke('hey')
 
-agent_for_web_scraping = create_agent(
+web_research_agent = create_agent(
     model=model,
     tools=[
         search_from_tavily,
         search_from_url
     ],
-    system_prompt="""
-    You are a web research assistant.
-
-    Tool selection rules:
-
-    1. If the user provides a specific URL and asks
-       for information from that URL, use search_from_url.
-
-    2. If the user asks for information about a topic
-       without providing a specific URL, use search_from_tavily.
-
-    3. Do not call search_from_tavily when a specific URL
-       has already been provided unless additional web research
-       is explicitly required.
-
-    4. Keep the amount of retrieved information concise.
-    """
+    system_prompt=get_prompt('web_research_agent')
 )
 
-# print(response)
-# print("-"*100)
-# print(response['messages'][-1].content)
 
-agent_context_search = create_agent(
+pdf_research_agent = create_agent(
     model=model,
     tools=[
         similar_context_from_chromaDB,
         create_vector_db
     ],
-    system_prompt="""
-        You are an AI assistant that answers questions using information from a PDF
-        stored in ChromaDB.
-
-        First determine whether the existing ChromaDB can provide information relevant
-        to the user's question.
-
-        Use similar_context_from_chromaDB when the vector database already exists.
-
-        Use create_vector_db only when the PDF needs to be indexed into ChromaDB.
-
-        After obtaining the relevant information, answer the user's question clearly
-        and concisely.
-
-        Do not invent information that is not present in the retrieved context.
-        """
+    system_prompt=get_prompt('pdf_research_agent')
 )
-response = agent_context_search.invoke({
+
+#AGENT -> TOOLS
+@tool
+def web_research_agent_tool(question: str) -> str:
+    """Use this agent for web research and URL-based questions."""
+
+    response = web_research_agent.invoke({
+        "messages": [
+            {
+                "role": "user",
+                "content": question
+            }
+        ]
+    })
+
+    return response["messages"][-1].content
+
+
+@tool
+def pdf_research_agent_tool(question: str) -> str:
+    """Use this agent for questions about information contained in the PDF."""
+
+    response = pdf_research_agent.invoke({
+        "messages": [
+            {
+                "role": "user",
+                "content": question
+            }
+        ]
+    })
+
+    return response["messages"][-1].content
+
+
+main_agent = create_agent(
+    model=model,
+
+    tools=[
+        web_research_agent_tool,
+        pdf_research_agent_tool
+    ],
+
+    system_prompt=get_prompt('main_agent')
+)
+
+
+
+'''
+1. Testing agents
+response = pdf_research_agent.invoke({
     "messages": [
         {
             "role": "user",
-            "content": "What is the main concept explained in this PDF? 'book.pdf' "
+            "content": "What is the main concept explained in this PDF? 'book2.pdf' "
         }
     ]
 })
@@ -83,3 +98,9 @@ response = agent_context_search.invoke({
 print(response)
 print("="*80)
 print(response['messages'][-1].content)
+
+2.
+print(response)
+print("-"*100)
+print(response['messages'][-1].content)
+'''
