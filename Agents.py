@@ -75,9 +75,11 @@ response = agent_context_search.invoke({
     "messages": [
         {
             "role": "user",
-            "content": "What is the main concept explained in this PDF? 'itc_book.pdf' "
+            "content": "What is the main concept explained in this PDF? 'book.pdf' "
         }
     ]
 })
 
 print(response)
+print("="*80)
+print(response['messages'][-1].content)

@@ -103,12 +103,14 @@ def create_vector_db(pdf_path: str) -> str:
 
 
 
-'''    
+'''  
+1.vector db check: 
 create_vector_db.invoke('book2.pdf')
 result = similar_context_from_chromaDB.invoke('questions of chapter 1')
 
 print(result)
 
+2.search web check:
 result = search_from_tavily.invoke('about machine learning')
 print(type(result), len(result))
 for item in result:
