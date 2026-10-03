@@ -9,6 +9,8 @@ from langchain_core.output_parsers import StrOutputParser
 from rich import print
 from langchain_core.prompts import ChatPromptTemplate
 from prompts import get_prompt
+from langgraph.checkpoint.memory import InMemorySaver
+
 
 load_dotenv()
 
@@ -70,6 +72,7 @@ def pdf_research_agent_tool(question: str) -> str:
 
     return response["messages"][-1].content
 
+checkpointer = InMemorySaver()
 
 main_agent = create_agent(
     model=model,
@@ -79,10 +82,9 @@ main_agent = create_agent(
         pdf_research_agent_tool
     ],
 
-    system_prompt=get_prompt('main_agent')
+    system_prompt=get_prompt('main_agent'),
+    checkpointer=checkpointer
 )
-
-
 
 '''
 1. Testing agents
@@ -103,4 +105,43 @@ print(response['messages'][-1].content)
 print(response)
 print("-"*100)
 print(response['messages'][-1].content)
+
+3. Context storing check using Checkpointer
+
+config = {
+    "configurable": {
+        "thread_id": "user_1"
+    }
+}
+
+response = main_agent.invoke(
+    {
+        "messages": [
+            {
+                "role": "user",
+                "content": "what's your name? if you don't have any then from now onwards you're name is pogo"
+            }
+        ]
+    },
+    config
+)
+print(response["messages"][-1].content)
+print(config)
+
+
+response = main_agent.invoke(
+    {
+        "messages": [
+            {
+                "role": "user",
+                "content": "What's your name"
+            }
+        ]
+    },
+    config
+)
+
+print(response["messages"][-1].content)
+print(config)
+
 '''

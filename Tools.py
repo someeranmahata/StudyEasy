@@ -12,8 +12,7 @@ import os
 load_dotenv()
 
 tavily_client = TavilyClient(os.getenv('TAVILY_API_KEY'))
-pdf_content = None
-pdf_name = None
+
 
 @tool
 def search_from_url(url:str)-> str:

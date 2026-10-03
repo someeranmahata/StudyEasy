@@ -60,6 +60,8 @@ prompts = {
 
         Do not invent information that is not present in the retrieved context.
         """
+    
+
 }
 def get_prompt(agent):
     return prompts[agent]
