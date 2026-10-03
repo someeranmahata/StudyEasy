@@ -1,4 +1,5 @@
 .env
-venv
-chromaDB
-__pycache_
+venv/
+chromaDB/
+__pycache__/
+*.pdf
