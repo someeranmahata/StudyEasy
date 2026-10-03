@@ -2,11 +2,12 @@
 from rich import print
 from dotenv import load_dotenv
 from langchain_core.tools import tool
-from langchain_community.document_loaders import TextLoader, PyPDFLoader, WebBaseLoader
+from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader
 from tavily import TavilyClient
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_docling.loader import DoclingLoader
 import os
 
 load_dotenv()
@@ -49,10 +50,8 @@ def search_from_tavily(topic:str)-> str:
 
 
 @tool
-def similar_context_from_chromaDB(topic:str)->list:
-    f"""search and extract information for the existing database
-        that has information about the document {pdf_content}
-    """
+def similar_context_from_chromaDB(topic: str) -> str:
+    """Search the existing ChromaDB for information relevant to the topic."""
 
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
@@ -62,19 +61,25 @@ def similar_context_from_chromaDB(topic:str)->list:
         persist_directory="chromaDB",
         embedding_function=embeddings
     )
-    results = vector_store.similarity_search(
-        f"{topic}",
-        k=3
+
+    results = vector_store.similarity_search(topic, k=3)
+
+    if not results:
+        return "No relevant information was found in ChromaDB."
+
+    context = "\n\n".join(
+        f"Document {i+1}:\n{doc.page_content}"
+        for i, doc in enumerate(results)
     )
-    return results
+
+    return context
+
 
 @tool
-def create_vector_db(pdf_path: str, topic:str) -> list:
-    f"""Create a ChromaDB vector database from a PDF file.
-        if the pdf is not same as previous {pdf_content}"""
-        
-    pdf_name=pdf_path
-    loader = PyPDFLoader(pdf_path)
+def create_vector_db(pdf_path: str) -> str:
+    """Create a ChromaDB from the provided PDF when its content is not already available."""
+    
+    loader = PyPDFLoader("book2.pdf")
     documents = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
@@ -88,19 +93,21 @@ def create_vector_db(pdf_path: str, topic:str) -> list:
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
 
-    vector_store = Chroma.from_documents(
+    Chroma.from_documents(
         documents=chunks,
         embedding=embeddings,
         persist_directory="./chromaDB"
     )
 
-    return similar_context_from_chromaDB(topic)
-
-
+    return "Vector database created successfully from the PDF."
 
 
 
 '''    
+create_vector_db.invoke('book2.pdf')
+result = similar_context_from_chromaDB.invoke('questions of chapter 1')
+
+print(result)
 
 result = search_from_tavily.invoke('about machine learning')
 print(type(result), len(result))

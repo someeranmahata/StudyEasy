@@ -7,6 +7,8 @@ from langchain_groq import ChatGroq
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from langchain_core.output_parsers import StrOutputParser
 from rich import print
+from langchain_core.prompts import ChatPromptTemplate
+
 
 load_dotenv()
 
@@ -41,21 +43,41 @@ agent_for_web_scraping = create_agent(
     4. Keep the amount of retrieved information concise.
     """
 )
-parser = StrOutputParser()
-chat = HumanMessage(content=input('user:'))
 
-response = agent_for_web_scraping.invoke({
-    'messages':chat
-})
 # print(response)
 # print("-"*100)
 # print(response['messages'][-1].content)
 
 agent_context_search = create_agent(
     model=model,
-    tools= [similar_context_from_chromaDB, create_vector_db],
-    system_prompt='''
-        give the answer to user from chromaDB, if the pdf content
-        matches with the question asked by user.
-    '''
+    tools=[
+        similar_context_from_chromaDB,
+        create_vector_db
+    ],
+    system_prompt="""
+        You are an AI assistant that answers questions using information from a PDF
+        stored in ChromaDB.
+
+        First determine whether the existing ChromaDB can provide information relevant
+        to the user's question.
+
+        Use similar_context_from_chromaDB when the vector database already exists.
+
+        Use create_vector_db only when the PDF needs to be indexed into ChromaDB.
+
+        After obtaining the relevant information, answer the user's question clearly
+        and concisely.
+
+        Do not invent information that is not present in the retrieved context.
+        """
 )
+response = agent_context_search.invoke({
+    "messages": [
+        {
+            "role": "user",
+            "content": "What is the main concept explained in this PDF? 'itc_book.pdf' "
+        }
+    ]
+})
+
+print(response)
