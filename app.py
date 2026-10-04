@@ -2,11 +2,11 @@ from flask import Flask, render_template, request, session, redirect, url_for
 from pipeline import chain, config
 from rich import print
 import uuid
-
+import secrets
 app = Flask(__name__)
 
 # Required for Flask session
-app.secret_key = "your-secret-key"
+app.secret_key = secrets.token_hex(32)
 
 
 @app.route("/", methods=["GET", "POST"])
