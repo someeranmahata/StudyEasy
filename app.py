@@ -25,7 +25,6 @@ def home():
         if pdf and pdf.filename:
             pdf_name = pdf.filename
 
-        # Don't send completely empty messages
         if not text and not pdf_name:
             return redirect(url_for("home"))
 

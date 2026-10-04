@@ -3,3 +3,4 @@ venv/
 chromaDB/
 __pycache__/
 *.pdf
+uploads/
