@@ -6,10 +6,11 @@ from Tools import *
 from Agents import *
 from langchain_core.prompts import ChatPromptTemplate
 from prompts import get_prompt
+from prompts import get_prompt
 
 
 prompt = ChatPromptTemplate([
-    ('system', 'summarize the text given and'),
+    ('system', get_prompt('chain_prompt')),
     ('user', '{topic}')
     
 ])

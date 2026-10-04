@@ -1,60 +1,275 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <title>Flask Input</title>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AI Assistant</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 
 <body>
 
-    <h1>My Flask App</h1>
 
-    <form method="POST" enctype="multipart/form-data">
-
-        <!-- Text input -->
-        <input
-            type="text"
-            name="message"
-            placeholder="Enter your message"
-        >
-
-        <br><br>
-
-        <!-- PDF input -->
-        <input
-            type="file"
-            name="pdf"
-            accept=".pdf"
-        >
-
-        <br><br>
-
-        <button type="submit">
-            Submit
-        </button>
-
-    </form>
+<div class="app">
 
 
-    <hr>
+    <!-- =================================
+         SIDEBAR
+    ================================== -->
+
+    <aside class="sidebar">
+
+        <form action="/clear" method="POST">
+
+            <button class="new-chat" type="submit">
+
+                <span>＋</span>
+
+                <span>New chat</span>
+
+            </button>
+
+        </form>
 
 
-    <h2>Python received:</h2>
-
-    {% if text %}
-        <p>
-            <strong>Text:</strong>
-            {{ text }}
-        </p>
-    {% endif %}
+        <div class="sidebar-title">
+            CONVERSATION
+        </div>
 
 
-    {% if pdf_name %}
-        <p>
-            <strong>PDF:</strong>
-            {{ pdf_name }}
-        </p>
-    {% endif %}
+        <div class="conversation-item">
+            Current conversation
+        </div>
+
+
+        <div class="sidebar-bottom">
+
+            AI Assistant
+
+            <br>
+
+            Flask + LangGraph
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =================================
+         CHAT
+    ================================== -->
+
+    <main class="chat-container">
+
+
+        <!-- HEADER -->
+
+        <header class="chat-header">
+
+            <div class="header-title">
+
+                <span class="status-dot"></span>
+
+                AI Assistant
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================
+             MESSAGES
+        ================================== -->
+
+        <div class="messages" id="messages">
+
+            <div class="messages-inner">
+
+
+                {% if not history %}
+
+                    <div class="empty-state">
+
+                        <div class="empty-icon">
+                            ✨
+                        </div>
+
+                        <h1>
+                            How can I help you?
+                        </h1>
+
+                        <p>
+                            Ask a question or upload a PDF to get started.
+                        </p>
+
+                    </div>
+
+                {% endif %}
+
+
+
+                {% for message in history %}
+
+
+                    {% if message.role == "user" %}
+
+                        <!-- USER -->
+
+                        <div class="message user-message">
+
+                            <div class="avatar user-avatar">
+                                U
+                            </div>
+
+                            <div class="message-content">
+
+                                <div class="message-name">
+                                    You
+                                </div>
+
+                                <div class="message-text">
+                                    {{ message.content }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                    {% else %}
+
+                        <!-- AI -->
+
+                        <div class="message assistant-message">
+
+                            <div class="avatar ai-avatar">
+                                AI
+                            </div>
+
+                            <div class="message-content">
+
+                                <div class="message-name">
+                                    AI Assistant
+                                </div>
+
+                                <div class="message-text">
+                                    {{ message.content }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    {% endif %}
+
+
+                {% endfor %}
+
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================
+             INPUT
+        ================================== -->
+
+        <div class="input-wrapper">
+
+            <form
+                action="/"
+                method="POST"
+                enctype="multipart/form-data"
+                id="chat-form"
+            >
+
+                <div class="input-container">
+
+
+                    <textarea
+                        class="message-input"
+                        name="message"
+                        id="message"
+                        placeholder="Message AI Assistant..."
+                        rows="1"
+                    ></textarea>
+
+
+
+                    <div class="input-controls">
+
+
+                        <div class="left-controls">
+
+                            <label
+                                for="pdf"
+                                class="file-label"
+                                title="Attach PDF"
+                            >
+                                📎
+                            </label>
+
+                            <input
+                                type="file"
+                                name="pdf"
+                                id="pdf"
+                                accept=".pdf"
+                            >
+
+                            <span
+                                class="file-name"
+                                id="file-name"
+                            ></span>
+
+                        </div>
+
+
+
+                        <button
+                            type="submit"
+                            class="send-button"
+                            id="send-button"
+                            disabled
+                        >
+                            ↑
+                        </button>
+
+
+                    </div>
+
+
+                </div>
+
+
+                <div class="disclaimer">
+
+                    AI can make mistakes. Check important information.
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+    </main>
+
+</div>
+
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+
 
 </body>
 
