@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Flask Input</title>
+</head>
+
+<body>
+
+    <h1>My Flask App</h1>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <!-- Text input -->
+        <input
+            type="text"
+            name="message"
+            placeholder="Enter your message"
+        >
+
+        <br><br>
+
+        <!-- PDF input -->
+        <input
+            type="file"
+            name="pdf"
+            accept=".pdf"
+        >
+
+        <br><br>
+
+        <button type="submit">
+            Submit
+        </button>
+
+    </form>
+
+
+    <hr>
+
+
+    <h2>Python received:</h2>
+
+    {% if text %}
+        <p>
+            <strong>Text:</strong>
+            {{ text }}
+        </p>
+    {% endif %}
+
+
+    {% if pdf_name %}
+        <p>
+            <strong>PDF:</strong>
+            {{ pdf_name }}
+        </p>
+    {% endif %}
+
+</body>
+
+</html>
