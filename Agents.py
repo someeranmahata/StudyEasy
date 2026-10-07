@@ -9,7 +9,10 @@ from langchain_core.output_parsers import StrOutputParser
 from rich import print
 from langchain_core.prompts import ChatPromptTemplate
 from prompts import get_prompt
-from langgraph.checkpoint.memory import InMemorySaver
+
+
+# from langgraph.checkpoint.memory import InMemorySaver
+# checkpointer = InMemorySaver()
 
 
 load_dotenv()
@@ -43,7 +46,8 @@ pdf_research_agent = create_agent(
 #AGENT -> TOOLS
 @tool
 def web_research_agent_tool(question: str) -> str:
-    """Use this agent for web research and URL-based questions."""
+    """Use this agent for web research and URL-based questions. And if user asked something which isn't in the memory, then use
+    this agent to search it online"""
 
     response = web_research_agent.invoke({
         "messages": [
@@ -59,7 +63,7 @@ def web_research_agent_tool(question: str) -> str:
 
 @tool
 def pdf_research_agent_tool(question: str) -> str:
-    """Use this agent for questions about information contained in the PDF."""
+    """Use this agent if user need any content about information contained in the PDF."""
 
     response = pdf_research_agent.invoke({
         "messages": [
@@ -72,7 +76,6 @@ def pdf_research_agent_tool(question: str) -> str:
 
     return response["messages"][-1].content
 
-checkpointer = InMemorySaver()
 
 main_agent = create_agent(
     model=model,
@@ -83,7 +86,6 @@ main_agent = create_agent(
     ],
 
     system_prompt=get_prompt('main_agent'),
-    checkpointer=checkpointer
 )
 
 '''

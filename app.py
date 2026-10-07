@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request, session, redirect, url_for
-from pipeline import chain, config
+from pipeline import chain
 from rich import print
-import uuid
 import secrets
 app = Flask(__name__)
-
+import os
+from Tools import create_vector_db
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Required for Flask session
 app.secret_key = secrets.token_hex(32)
 
@@ -21,10 +23,20 @@ def home():
 
         pdf = request.files.get("pdf")
         pdf_name = ""
+        pdf_path = ""
 
         if pdf and pdf.filename:
             pdf_name = pdf.filename
+            pdf_path = os.path.join(UPLOAD_FOLDER, pdf_name)
 
+            pdf.save(pdf_path)
+
+            print("PDF PATH:", pdf_path)
+            print("EXISTS:", os.path.exists(pdf_path))
+
+            result = create_vector_db.invoke(pdf_path)
+            print(result)
+            
         if not text and not pdf_name:
             return redirect(url_for("home"))
 
@@ -53,11 +65,10 @@ def home():
 
         response = chain.invoke(
             {
-                "topic": f"{text} {pdf_name}"
+                "topic": f"{text} {pdf_path}"
             },
-            config
         )
-
+        print(pdf_name)
         print(response)
 
         ai_message = response["messages"][-1].content

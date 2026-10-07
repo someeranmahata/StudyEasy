@@ -77,7 +77,7 @@ def similar_context_from_chromaDB(topic: str) -> str:
 def create_vector_db(pdf_path: str) -> str:
     """Create a ChromaDB from the provided PDF when its content is not already available."""
     
-    loader = PyPDFLoader("book2.pdf")
+    loader = PyPDFLoader(pdf_path)
     documents = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(

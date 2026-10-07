@@ -16,12 +16,13 @@ prompt = ChatPromptTemplate([
 
 chain = prompt | main_agent
 
+
+'''
 config = {
     "configurable": {
         "thread_id": "user_1"
     }
 }
-'''
 while True:
     user_input = input("user: ")
 
